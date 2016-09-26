@@ -18,7 +18,8 @@ const (
 	MainNetID NetID = 0xdadb1986
 	TestNetID NetID = 0xccdd2086
 
-	CmdVersion = "version"
+	CmdVersion   = "version"
+	CmdBroadcast = "broadcast"
 )
 
 var (
@@ -74,6 +75,67 @@ func ReadMessage(r io.Reader, magic NetID) (Message, error) {
 	}
 
 	return msg, nil
+}
+
+func WriteMessage(w io.Writer, magic NetID, msg Message) error {
+	payload, err := msgpack.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	size := len(payload)
+	cmd := msg.Command()
+
+	var command [CommandSize]byte
+	copy(command[:], []byte(cmd))
+
+	buf := new(bytes.Buffer)
+
+	writeElements(buf, magic, command[:], size)
+
+	_, err = w.Write(buf.Bytes())
+	if err != nil {
+		return err
+	}
+
+	_, err = w.Write(payload)
+	return err
+}
+
+func writeElements(w io.Writer, args ...interface{}) error {
+	for _, el := range args {
+		err := writeElement(w, el)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func writeElement(w io.Writer, el interface{}) error {
+	switch e := el.(type) {
+	case NetID:
+		return writeUint32(w, uint32(e))
+	case uint32:
+		return writeUint32(w, e)
+	case int:
+		return writeUint32(w, uint32(e))
+	case []byte:
+		_, err := w.Write(e)
+		return err
+	}
+
+	return binary.Write(w, byteOrder, el)
+}
+
+func writeUint32(w io.Writer, i uint32) error {
+	var buf [4]byte
+
+	byteOrder.PutUint32(buf[:], i)
+
+	_, err := w.Write(buf[:])
+	return err
 }
 
 func readElements(r io.Reader, args ...interface{}) error {
@@ -137,6 +199,8 @@ func getDefaultMsg(command string) (Message, error) {
 	switch command {
 	case CmdVersion:
 		return &MsgVersion{}, nil
+	case CmdBroadcast:
+		return &MsgBroadcast{}, nil
 	default:
 		return nil, fmt.Errorf("Invalid command: %s", command)
 	}

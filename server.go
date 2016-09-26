@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"github.com/daqing/icoin/console"
 	"github.com/daqing/icoin/wire"
 	"log"
 	"net"
+	"os"
+	"strings"
 )
 
 type server struct {
@@ -31,6 +34,8 @@ func (s *server) Start() {
 	if len(s.conf.connect) > 0 {
 		go s.ConnectToPeer()
 	}
+
+	go s.ReadInput()
 
 	waitChan := make(chan bool)
 
@@ -70,6 +75,40 @@ func (s *server) ConnectToPeer() {
 
 	peer := newOutboundPeer(s, conn)
 	s.AddPeer(peer)
+}
+
+func (s *server) ReadInput() {
+	r := bufio.NewReader(os.Stdin)
+
+loop:
+	for {
+		line, _, err := r.ReadLine()
+		if err != nil {
+			break loop
+		}
+
+		cmd := strings.Split(string(line), ":")
+
+		log.Printf("cmd: %v\n", cmd)
+
+		switch cmd[0] {
+		case "broadcast":
+			s.broadcast(cmd[1])
+		default:
+			log.Printf("cmd is: %v\n", cmd)
+		}
+	}
+}
+
+func (s *server) broadcast(msg string) {
+	for _, peer := range s.peers {
+		log.Printf("broadcasting to peer: %s (%s)\n", peer.ID(), peer.Direction())
+		err := peer.WriteMessage(wire.NewBroadcastMsg(msg))
+		if err != nil {
+			log.Printf("Error Write Message: %v", err)
+			return
+		}
+	}
 }
 
 func (s *server) AddPeer(peer *peer) {

@@ -76,7 +76,7 @@ loop:
 	for {
 		msg, err := p.readMessage()
 		if err != nil {
-			log.Println(err)
+			log.Printf("Read Message Error in Peer#InHandler(): %v\n", err)
 			break loop
 		}
 
@@ -126,4 +126,8 @@ func (p *peer) readMessage() (wire.Message, error) {
 	}
 
 	return msg, err
+}
+
+func (p *peer) WriteMessage(msg wire.Message) error {
+	return wire.WriteMessage(p.conn, p.server.netID(), msg)
 }
