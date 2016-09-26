@@ -1,7 +1,7 @@
 package wire
 
 type MsgBroadcast struct {
-	content string
+	Content string
 }
 
 func (m *MsgBroadcast) Command() string {

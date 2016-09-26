@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"gopkg.in/vmihailenco/msgpack.v2"
 	"io"
-	"log"
 )
 
 type NetID uint32
 
 const (
-	HeaderLen = 24
+	HeaderLen = 20
 
 	CommandSize = 12
 
@@ -38,8 +37,6 @@ type MessageHeader struct {
 }
 
 func ReadMessage(r io.Reader, magic NetID) (Message, error) {
-	log.Printf("Server Magic ID: %v\n", magic)
-
 	var buf [HeaderLen]byte
 
 	n, err := io.ReadFull(r, buf[:])
@@ -55,8 +52,6 @@ func ReadMessage(r io.Reader, magic NetID) (Message, error) {
 	readElements(hr, &header.magic, &command, &header.msglen)
 
 	header.command = string(bytes.TrimRight(command[:], string(0)))
-
-	log.Printf("Message Header: %v\n", header)
 
 	if header.magic != magic {
 		return nil, fmt.Errorf("Message Header Magic: %v doesn't match server magic: %v", header.magic, magic)
@@ -78,13 +73,10 @@ func ReadMessage(r io.Reader, magic NetID) (Message, error) {
 		return nil, err
 	}
 
-	log.Printf("Message Read OK: %v\n", msg)
-
 	return msg, nil
 }
 
 func WriteMessage(w io.Writer, magic NetID, msg Message) error {
-	log.Printf("Try to write message with magic: %#v, %v\n", msg, magic)
 	payload, err := msgpack.Marshal(msg)
 	if err != nil {
 		return err
@@ -94,8 +86,6 @@ func WriteMessage(w io.Writer, magic NetID, msg Message) error {
 
 	cmd := msg.Command()
 
-	log.Printf("payload: %#v, size: %d, cmd: %s\n", payload, size, cmd)
-
 	var command [CommandSize]byte
 	copy(command[:], []byte(cmd))
 
@@ -103,7 +93,6 @@ func WriteMessage(w io.Writer, magic NetID, msg Message) error {
 
 	writeElements(buf, magic, command[:], size)
 
-	log.Printf("Header Buffer: %#v\n", buf.Bytes())
 	_, err = w.Write(buf.Bytes())
 	if err != nil {
 		return err
@@ -161,7 +150,6 @@ func readElements(r io.Reader, args ...interface{}) error {
 }
 
 func readElement(r io.Reader, el interface{}) error {
-	log.Printf("Read Element: %#v\n", el)
 	switch e := el.(type) {
 	case *uint32:
 		v, err := readUint32(r)
@@ -170,6 +158,7 @@ func readElement(r io.Reader, el interface{}) error {
 		}
 
 		*e = v
+		return nil
 	case *NetID:
 		v, err := readUint32(r)
 		if err != nil {
@@ -177,7 +166,9 @@ func readElement(r io.Reader, el interface{}) error {
 		}
 
 		*e = NetID(v)
-	case *[12]byte:
+
+		return nil
+	case *[CommandSize]byte:
 		_, err := io.ReadFull(r, e[:])
 		if err != nil {
 			return err
