@@ -8,6 +8,7 @@ import (
 type config struct {
 	net     string
 	connect string
+	listen  bool
 	params  *params
 }
 
@@ -16,6 +17,7 @@ func loadConfig() (*config, error) {
 
 	flag.StringVar(&conf.net, "net", "main", "which network to connect to")
 	flag.StringVar(&conf.connect, "connect", "", "which node to connect to")
+	flag.BoolVar(&conf.listen, "listen", true, "listen on host")
 
 	flag.Parse()
 

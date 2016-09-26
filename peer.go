@@ -82,10 +82,13 @@ loop:
 
 		log.Printf("Received Msg from remote peer: %v\n", msg)
 	}
+
+	p.Disconnect()
 }
 
 func (p *peer) Disconnect() {
 	p.conn.Close()
+	p.server.RemovePeer(p)
 }
 
 func (p *peer) NegotiateInboundProtocol() error {

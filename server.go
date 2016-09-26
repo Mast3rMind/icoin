@@ -24,8 +24,13 @@ func newServer(conf *config) *server {
 func (s *server) Start() {
 	log.Printf("Server started on port: %s.", s.conf.params.port)
 
-	go s.Listener()
-	go s.ConnectToPeer()
+	if s.conf.listen {
+		go s.Listener()
+	}
+
+	if len(s.conf.connect) > 0 {
+		go s.ConnectToPeer()
+	}
 
 	waitChan := make(chan bool)
 
@@ -75,12 +80,12 @@ func (s *server) AddPeer(peer *peer) {
 		if err := peer.Start(); err != nil {
 			log.Println(err)
 			peer.Disconnect()
-			s.RemovePeer(peer)
 		}
 	}()
 }
 
 func (s *server) RemovePeer(peer *peer) {
+	log.Printf("Remove Peer %s (%s) From Server\n", peer.ID(), peer.Direction())
 	delete(s.peers, peer.ID())
 }
 
