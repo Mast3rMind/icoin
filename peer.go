@@ -34,6 +34,14 @@ func newPeer(s *server, conn net.Conn, incoming bool) *peer {
 	}
 }
 
+func (p *peer) Direction() string {
+	if p.incoming {
+		return "Inbound"
+	} else {
+		return "Outbound"
+	}
+}
+
 func (p *peer) ID() string {
 	return p.conn.RemoteAddr().String()
 }
