@@ -6,14 +6,16 @@ import (
 )
 
 type config struct {
-	net    string
-	params *params
+	net     string
+	connect string
+	params  *params
 }
 
 func loadConfig() (*config, error) {
 	var conf config
 
 	flag.StringVar(&conf.net, "net", "main", "which network to connect to")
+	flag.StringVar(&conf.connect, "connect", "", "which node to connect to")
 
 	flag.Parse()
 
@@ -24,7 +26,6 @@ func loadConfig() (*config, error) {
 		conf.params = &testNetParams
 	default:
 		return nil, errors.New("invalid network type")
-
 	}
 
 	return &conf, nil

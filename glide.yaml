@@ -1,0 +1,4 @@
+package: github.com/daqing/icoin
+import:
+- package: gopkg.in/vmihailenco/msgpack.v2
+  version: ^2.7.3
