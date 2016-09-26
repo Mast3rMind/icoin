@@ -120,6 +120,7 @@ func (p *peer) readRemoteVersionMsg() error {
 }
 
 func (p *peer) readMessage() (wire.Message, error) {
+	log.Printf("Try to Read Message From peer: %v\n", p.ID())
 	msg, err := wire.ReadMessage(p.conn, p.server.netID())
 	if err != nil {
 		return nil, err
