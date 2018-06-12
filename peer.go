@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"github.com/daqing/icoin/wire"
+	"github.com/zgreat/icoin/wire"
 	"log"
 	"net"
 	"time"
