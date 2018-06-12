@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
-	"github.com/daqing/icoin/console"
-	"github.com/daqing/icoin/wire"
+	"github.com/zgreat/icoin/console"
+	"github.com/zgreat/icoin/wire"
 	"log"
 	"net"
 	"os"
