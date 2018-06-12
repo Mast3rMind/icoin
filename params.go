@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/daqing/icoin/wire"
+	"github.com/zgreat/icoin/wire"
 )
 
 type params struct {
